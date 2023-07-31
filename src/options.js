@@ -28,6 +28,7 @@ const defaultOptions = {
     },
 
     android: {
+        legacySplash: true,
         resourceColors: false,
         logoScale: null,
     },
@@ -99,3 +100,5 @@ export default function (options) {
 
     return options
 }
+
+// ✝

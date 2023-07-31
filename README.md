@@ -1,4 +1,4 @@
-# App Image Bulder
+# Xlient App Image Bulder
 
 Generate icons and splash images for Android and iOS apps from a set of template images.
 

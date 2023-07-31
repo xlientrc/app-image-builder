@@ -26,7 +26,9 @@ export const ANDROID_SPLASH_SIZES = {
     'land-hdpi': [800, 480],
     'land-xhdp': [1280, 720],
     'land-xxhdpi': [1600, 960],
-    'land-xxxhdpi': [1920, 1280]
+    'land-xxxhdpi': [1920, 1280],
+
+    'splash-icon': [2732, 2732],
 }
 
 export const IOS_ICON_SIZES = {
@@ -177,30 +179,81 @@ export default class {
             fs.mkdirSync('./res/ios/splash', {recursive: true})
         }
 
-        if (this._options.ios.idiom === 'device') {
-            await this._buildIosSplash(IOS_SPLASH_SIZES_DEVICE)
+        if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
+            if (this._options.ios.idiom === 'device') {
+                await this._buildIosSplash(
+                    this._options.splashImage,
+                    this._options.splashBackgroundColor,
+                    this._options.logoImage,
+                    IOS_SPLASH_SIZES_DEVICE,
+                    'light',
+                )
+
+                await this._buildIosSplash(
+                    this._options.splashDarkImage || this._options.splashImage,
+                    this._options.splashDarkBackgroundColor || this._options.splashBackgroundColor,
+                    this._options.logoDarkImage || this._options.logoImage,
+                    IOS_SPLASH_SIZES_DEVICE,
+                    'dark',
+                )
+            } else {
+                await this._buildIosSplash(
+                    this._options.splashImage,
+                    this._options.splashBackgroundColor,
+                    this._options.logoImage,
+                    IOS_SPLASH_SIZES_UNIVERSAL,
+                    'light',
+                )
+
+                await this._buildIosSplash(
+                    this._options.splashDarkImage || this._options.splashImage,
+                    this._options.splashDarkBackgroundColor || this._options.splashBackgroundColor,
+                    this._options.logoDarkImage || this._options.logoImage,
+                    IOS_SPLASH_SIZES_UNIVERSAL,
+                    'dark',
+                )
+            }
         } else {
-            await this._buildIosSplash(IOS_SPLASH_SIZES_UNIVERSAL)
+            if (this._options.ios.idiom === 'device') {
+                await this._buildIosSplash(
+                    this._options.splashImage,
+                    this._options.splashBackgroundColor,
+                    this._options.logoImage,
+                    IOS_SPLASH_SIZES_DEVICE,
+                    null,
+                )
+            } else {
+                await this._buildIosSplash(
+                    this._options.splashImage,
+                    this._options.splashBackgroundColor,
+                    this._options.logoImage,
+                    IOS_SPLASH_SIZES_UNIVERSAL,
+                    null,
+                )
+            }
         }
     }
 
-    async _buildIosSplash(sizes) {
-        let splashImage,
-            logoImage
-
+    async _buildIosSplash(
+        splashImage,
+        splashBackgroundColor,
+        logoImage,
+        sizes,
+        theme
+    ) {
         if (this._options.splashImage !== null) {
-            splashImage = await Jimp.read(this._options.splashImage)
+            splashImage = await Jimp.read(splashImage)
         }
 
         if (this._options.logoImage !== null) {
-            logoImage = await Jimp.read(this._options.logoImage)
+            logoImage = await Jimp.read(logoImage)
         }
 
         for (const [key, value] of Object.entries(sizes)) {
             const splash = await this._newImage(
                 value[0],
                 value[1],
-                this._options.splashBackgroundColor
+                splashBackgroundColor
             )
 
             if (this._options.splashImage !== null) {
@@ -239,7 +292,11 @@ export default class {
                 )
             }
 
-            await splash.writeAsync('res/ios/splash/' + key + '.png')
+            if (theme) {
+                await splash.writeAsync('res/ios/splash/' + key + '~' + theme + '.png')
+            } else {
+                await splash.writeAsync('res/ios/splash/' + key + '.png')
+            }
         }
     }
 
@@ -267,7 +324,12 @@ export default class {
         }
     }
 
-    async _buildAndroidSplash(splashImage, splashBackgroundColor, logoImage, dark) {
+    async _buildAndroidSplash(
+        splashImage,
+        splashBackgroundColor,
+        logoImage,
+        dark
+    ) {
         if (this._options.splashImage !== null) {
             splashImage = await Jimp.read(splashImage)
         }
@@ -277,6 +339,10 @@ export default class {
         }
 
         for (const [key, value] of Object.entries(ANDROID_SPLASH_SIZES)) {
+            if (!this._options.android.legacySplash && key !== 'splash-icon') {
+                continue
+            }
+
             const splash = await this._newImage(
                 value[0],
                 value[1],
@@ -382,8 +448,8 @@ export default class {
     }
 
     _getContainImageSize(containerWidth, containerHeight, imageWidth, imageHeight) {
-        let aspectRatio = imageWidth / imageHeight;
-        let width, height;
+        let aspectRatio = imageWidth / imageHeight
+        let width, height
 
         if (containerWidth / aspectRatio <= containerHeight) {
             width = containerWidth
@@ -458,7 +524,7 @@ export default class {
         let xml = ''
 
         if (platformNode) {
-            xml += '<platform name="ios">\n';
+            xml += '<platform name="ios">\n'
         }
 
         if (this._options.iconImage !== null) {
@@ -472,28 +538,52 @@ export default class {
                 xml += '\n'
             }
 
-            if (this._options.ios.idiom === 'device') {
-                for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                    xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+            if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
+                if (this._options.ios.idiom === 'device') {
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '~light" />\n'
+                    }
+                } else{
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '~light" />\n'
+                    }
                 }
-            } else{
-                for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                    xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+
+                xml += '\n'
+
+                if (this._options.ios.idiom === 'device') {
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '~dark" />\n'
+                    }
+                } else{
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '~dark" />\n'
+                    }
+                }
+            } else {
+                if (this._options.ios.idiom === 'device') {
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+                    }
+                } else{
+                    for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
+                        xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+                    }
                 }
             }
         }
 
         if (platformNode) {
-            xml += '</platform>\n';
+            xml += '</platform>\n'
         }
 
-        return xml;
+        return xml
     }
     makeAndroidCordovaXml(platformNode) {
         let xml = ''
 
         if (platformNode) {
-            xml += '<platform name="android">\n';
+            xml += '<platform name="android">\n'
         }
 
         if (this._options.iconImage !== null) {
@@ -523,48 +613,69 @@ export default class {
                 xml += '\n'
             }
 
-            for (const key of Object.keys(ANDROID_SPLASH_SIZES)) {
-                if (key.includes('land')) {
-                    continue;
+            if (this._options.android.legacySplash) {
+                for (const key of Object.keys(ANDROID_SPLASH_SIZES)) {
+                    if (key === 'splash-icon') {
+                        continue
+                    }
+
+                    if (key.includes('land')) {
+                        continue
+                    }
+
+                    xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key.replace('port-', '') + '" />\n'
                 }
 
-                xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key.replace('port-', '') + '" />\n'
-            }
-
-            xml += '\n'
-
-            let isPort = true
-            for (const key of Object.keys(ANDROID_SPLASH_SIZES)) {
-                if (isPort && key.includes('land-')) {
-                    isPort = false
-                    xml += '\n'
-                }
-
-                xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key + '" />\n'
-            }
-
-            if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
                 xml += '\n'
 
-                isPort = true
-                for (let key of Object.keys(ANDROID_SPLASH_SIZES)) {
+                let isPort = true
+                for (const key of Object.keys(ANDROID_SPLASH_SIZES)) {
+                    if (key === 'splash-icon') {
+                        continue
+                    }
+
                     if (isPort && key.includes('land-')) {
                         isPort = false
                         xml += '\n'
                     }
 
-                    key = key.replace('land-', 'land-night-')
-                    key = key.replace('port-', 'port-night-')
-
                     xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key + '" />\n'
                 }
+
+                if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
+                    xml += '\n'
+
+                    isPort = true
+                    for (let key of Object.keys(ANDROID_SPLASH_SIZES)) {
+                        if (key === 'splash-icon') {
+                            continue
+                        }
+
+                        if (isPort && key.includes('land-')) {
+                            isPort = false
+                            xml += '\n'
+                        }
+
+                        key = key.replace('land-', 'land-night-')
+                        key = key.replace('port-', 'port-night-')
+
+                        xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key + '" />\n'
+                    }
+                }
+
+                xml += '\n'
             }
+
+            xml += '    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/android/splash/splash-icon.png" />\n'
+            xml += '    <preference name="AndroidWindowSplashScreenBackground" value="' + this._options.splashBackgroundColor + '" />\n'
         }
 
         if (platformNode) {
-            xml += '</platform>\n';
+            xml += '</platform>\n'
         }
 
-        return xml;
+        return xml
     }
 }
+
+// ✝
