@@ -35,6 +35,7 @@ const builder = new AppImageBuilder({
     },
 
     android: {
+        legacySplash: true,
         resourceColors: true,
 
         // Override default logoScale.
@@ -43,7 +44,7 @@ const builder = new AppImageBuilder({
 })
 
 // Generate images.
-builder.build()
+await builder.build()
 
 // Output Cordova config XML.
 console.log(builder.makeCordovaXml())
@@ -92,3 +93,7 @@ What size format of splash screens to generate for iOS.
 
 When true, a colors.xml resources file will be generated with the icon
 background color.
+
+## Android Legacy Splash
+
+When true, legacy splash images used by Android 11 and below will be generered.
