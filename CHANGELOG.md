@@ -1,6 +1,13 @@
 # Change Log
 
-## 1.1.0 - 2023-08-01
+## 1.1.1 - 2023-07-31
+
+### Fixed
+
+- Fixed Android 'splash-icon' being generated twice in certain situations.
+- Fixed 'xhdpi' density being generated as 'xhdp'.
+
+## 1.1.0 - 2023-07-30
 
 ### Added
 
