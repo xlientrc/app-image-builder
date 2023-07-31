@@ -1,6 +1,6 @@
 {
   "name": "@xlient/app-image-builder",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Node module to build icon and splash images for Android and iOS apps from a set of template images.",
   "main": "src/index.js",
   "type": "module",
