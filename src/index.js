@@ -8,7 +8,7 @@ export const ANDROID_ICON_SIZES = {
     'ldpi': 36,
     'mdpi': 48,
     'hdpi': 72,
-    'xhdp': 96,
+    'xhdpi': 96,
     'xxhdpi': 144,
     'xxxhdpi': 192
 }
@@ -17,14 +17,14 @@ export const ANDROID_SPLASH_SIZES = {
     'port-ldpi': [200, 300],
     'port-mdpi': [320, 480],
     'port-hdpi': [480, 800],
-    'port-xhdp': [720, 1280],
+    'port-xhdpi': [720, 1280],
     'port-xxhdpi': [960, 1600],
     'port-xxxhdpi': [1280, 1920],
 
     'land-ldpi': [300, 200],
     'land-mdpi': [480, 320],
     'land-hdpi': [800, 480],
-    'land-xhdp': [1280, 720],
+    'land-xhdpi': [1280, 720],
     'land-xxhdpi': [1600, 960],
     'land-xxxhdpi': [1920, 1280],
 
@@ -341,6 +341,10 @@ export default class {
         for (const [key, value] of Object.entries(ANDROID_SPLASH_SIZES)) {
             if (!this._options.android.legacySplash && key !== 'splash-icon') {
                 continue
+            }
+
+            if (key === 'splash-icon' && dark) {
+                continue;
             }
 
             const splash = await this._newImage(
