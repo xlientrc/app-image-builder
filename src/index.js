@@ -545,11 +545,11 @@ export default class {
             if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~light" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '~light.png" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~light" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '~light.png" />\n'
                     }
                 }
 
@@ -557,21 +557,21 @@ export default class {
 
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~dark" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '~dark.png" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~dark" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '~dark.png" />\n'
                     }
                 }
             } else {
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '.png" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '" />\n'
+                        xml += '    <splash src="res/ios/splash/' + key + '.png" />\n'
                     }
                 }
             }
