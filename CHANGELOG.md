@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.1.2 - 2023-08-09
+
+### Fixed
+
+- Fixed missing .png extension on iOS splash Cordova output.
+
 ## 1.1.1 - 2023-07-31
 
 ### Fixed
