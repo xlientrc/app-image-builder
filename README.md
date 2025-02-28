@@ -32,14 +32,16 @@ const builder = new AppImageBuilder({
 
         // Override default logoScale.
         logoScale: null,
+        path: 'res/ios',
     },
 
     android: {
-        legacySplash: true,
+        legacySplash: false,
         resourceColors: true,
 
         // Override default logoScale.
-        logoScale: null,
+        logoScale: 0.8,
+        path: 'res/android',
     },
 })
 
@@ -48,6 +50,10 @@ await builder.build()
 
 // Output Cordova config XML.
 console.log(builder.makeCordovaXml())
+
+// Generate images for each platform individually.
+await builder.buildIos()
+await builder.buildAndroid()
 
 // Output Cordova config XML for each platform individually.
 console.log(builder.makeIosCordovaXml())
