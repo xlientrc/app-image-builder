@@ -25,12 +25,14 @@ const defaultOptions = {
     ios: {
         idiom: 'universal', // universal or device
         logoScale: null,
+        path: 'res/ios',
     },
 
     android: {
-        legacySplash: true,
+        legacySplash: false,
         resourceColors: false,
-        logoScale: null,
+        logoScale: 0.8,
+        path: 'res/android',
     },
 }
 
@@ -48,6 +50,10 @@ function cleanPosition(position) {
     }
 
     return position
+}
+
+function cleanPath(directory) {
+    return directory.replace(/^\/+|\/+$/g, '');
 }
 
 export default function (options) {
@@ -97,6 +103,9 @@ export default function (options) {
             ...options.android,
         }
     }
+
+    options.ios.path = cleanPath(options.ios.path)
+    options.android.path = cleanPath(options.android.path)
 
     return options
 }

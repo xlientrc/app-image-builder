@@ -13,6 +13,24 @@ export const ANDROID_ICON_SIZES = {
     'xxxhdpi': 192
 }
 
+export const ANDROID_ADAPTIVE_FOREGROUND_ICON_SIZES = {
+    'ldpi': 49,
+    'mdpi': 66,
+    'hdpi': 99,
+    'xhdpi': 132,
+    'xxhdpi': 198,
+    'xxxhdpi': 264
+}
+
+export const ANDROID_ADAPTIVE_BACKGROUND_ICON_SIZES = {
+    'ldpi': 81,
+    'mdpi': 108,
+    'hdpi': 162,
+    'xhdpi': 216,
+    'xxhdpi': 324,
+    'xxxhdpi': 432
+}
+
 export const ANDROID_SPLASH_SIZES = {
     'port-ldpi': [200, 300],
     'port-mdpi': [320, 480],
@@ -78,10 +96,17 @@ export default class {
     }
 
     async build() {
-        await this.buildIosIcons()
-        await this.buildAndroidIcons()
+        await buildIos()
+        await buildAndroid()
+    }
 
+    async buildIos() {
+        await this.buildIosIcons()
         await this.buildIosSplash()
+    }
+
+    async buildAndroid() {
+        await this.buildAndroidIcons()
         await this.buildAndroidSplash()
     }
 
@@ -90,8 +115,8 @@ export default class {
             return
         }
 
-        if (!fs.existsSync('./res/ios/icon')) {
-            fs.mkdirSync('./res/ios/icon', {recursive: true})
+        if (!fs.existsSync(this._path('ios', '/icon'))) {
+            fs.mkdirSync(this._path('ios', '/icon'), {recursive: true})
         }
 
         const image = await Jimp.read(this._options.iconImage)
@@ -99,7 +124,7 @@ export default class {
         for (const [key, value] of Object.entries(IOS_ICON_SIZES)) {
             const icon = image.clone()
             icon.resize(value, value, Jimp.RESIZE_BICUBIC)
-            await icon.writeAsync('res/ios/icon/' + key + '.png')
+            await icon.writeAsync(this._path('ios', '/icon/' + key + '.png'))
         }
     }
 
@@ -108,8 +133,8 @@ export default class {
             return
         }
 
-        if (!fs.existsSync('./res/android/icon')) {
-            fs.mkdirSync('./res/android/icon', {recursive: true})
+        if (!fs.existsSync(this._path('android', '/icon'))) {
+            fs.mkdirSync(this._path('android', '/icon'), {recursive: true})
         }
 
         const image = await Jimp.read(this._options.iconImage)
@@ -117,48 +142,66 @@ export default class {
         for (const [key, value] of Object.entries(ANDROID_ICON_SIZES)) {
             const icon = image.clone()
             icon.resize(value, value, Jimp.RESIZE_BICUBIC)
-            await icon.writeAsync('res/android/icon/' + key + '.png')
+            await icon.writeAsync(this._path('android', '/icon/' + key + '.png'))
         }
 
         await this._buildAndroidAdaptiveIcons()
     }
 
     async _buildAndroidAdaptiveIcons() {
-        if (this._options.iconForegroundImage === null) {
-            return
+        if (!fs.existsSync(this._path('android', '/icon'))) {
+            fs.mkdirSync(this._path('android', '/icon'), {recursive: true})
         }
 
-        if (!fs.existsSync('./res/android/icon')) {
-            fs.mkdirSync('./res/android/icon', {recursive: true})
+        let iconImage
+
+        if (this._options.iconForegroundImage !== null) {
+            iconImage = await Jimp.read(this._options.iconForegroundImage)
+        } else {
+            iconImage = await Jimp.read(this._options.iconImage)
         }
 
-        const image = await Jimp.read(this._options.iconForegroundImage)
+        for (const [key, value] of Object.entries(ANDROID_ADAPTIVE_BACKGROUND_ICON_SIZES)) {
+            const icon = await this._newImage(value, value, 0x00000000)
 
-        for (const [key, value] of Object.entries(ANDROID_ICON_SIZES)) {
-            const icon = image.clone()
-            icon.resize(value, value, Jimp.RESIZE_BICUBIC)
-            await icon.writeAsync('res/android/icon/' + key + '-foreground.png')
+            const foreValue = ANDROID_ADAPTIVE_FOREGROUND_ICON_SIZES[key]
+            const foreIcon = iconImage.clone()
+            foreIcon.resize(foreValue, foreValue, Jimp.RESIZE_BICUBIC)
+
+            const offset = parseInt((value - foreValue) / 2, 10)
+
+            icon.blit(
+                foreIcon,
+                offset,
+                offset,
+                0,
+                0,
+                foreValue,
+                foreValue
+            )
+
+            await icon.writeAsync(this._path('android', '/icon/' + key + '-foreground.png'))
         }
 
         if (this._options.iconBackgroundImage !== null) {
             const backImage = await Jimp.read(this._options.iconBackgroundImage)
 
-            for (const [key, value] of Object.entries(ANDROID_ICON_SIZES)) {
+            for (const [key, value] of Object.entries(ANDROID_ADAPTIVE_BACKGROUND_ICON_SIZES)) {
                 const icon = backImage.clone()
                 icon.resize(value, value, Jimp.RESIZE_BICUBIC)
-                await icon.writeAsync('res/android/icon/' + key + '-background.png')
+                await icon.writeAsync(this._path('android', '/icon/' + key + '-background.png'))
             }
         } else if (this._options.android.resourceColors === false) {
             const backImage = await this._newImage(1024, 1024, this._options.iconBackgroundColor)
 
-            for (const [key, value] of Object.entries(ANDROID_ICON_SIZES)) {
+            for (const [key, value] of Object.entries(ANDROID_ADAPTIVE_BACKGROUND_ICON_SIZES)) {
                 const icon = backImage.clone()
                 icon.resize(value, value, Jimp.RESIZE_BICUBIC)
-                await icon.writeAsync('res/android/icon/' + key + '-background.png')
+                await icon.writeAsync(this._path('android', '/icon/' + key + '-background.png'))
             }
         } else {
-            if (!fs.existsSync('./res/android/values')) {
-                fs.mkdirSync('./res/android/values', {recursive: true})
+            if (!fs.existsSync(this._path('android', '/values'))) {
+                fs.mkdirSync(this._path('android', '/values'), {recursive: true})
             }
 
             const colorsXml = `<?xml version="1.0" encoding="utf-8"?>\n` +
@@ -166,7 +209,10 @@ export default class {
                 `    <color name="background">${this._options.iconBackgroundColor}</color>\n` +
                 `</resources>`
 
-            await fs.promises.writeFile('res/android/values/colors.xml', colorsXml)
+            await fs.promises.writeFile(
+                this._path('android', '/values/colors.xml'),
+                colorsXml
+            )
         }
     }
 
@@ -175,8 +221,8 @@ export default class {
             return
         }
 
-        if (!fs.existsSync('./res/ios/splash')) {
-            fs.mkdirSync('./res/ios/splash', {recursive: true})
+        if (!fs.existsSync(this._path('ios', '/splash'))) {
+            fs.mkdirSync(this._path('ios', '/splash'), {recursive: true})
         }
 
         if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
@@ -293,9 +339,9 @@ export default class {
             }
 
             if (theme) {
-                await splash.writeAsync('res/ios/splash/' + key + '~' + theme + '.png')
+                await splash.writeAsync(this._path('ios', '/splash/' + key + '~' + theme + '.png'))
             } else {
-                await splash.writeAsync('res/ios/splash/' + key + '.png')
+                await splash.writeAsync(this._path('ios', '/splash/' + key + '.png'))
             }
         }
     }
@@ -305,8 +351,8 @@ export default class {
             return
         }
 
-        if (!fs.existsSync('./res/android/splash')) {
-            fs.mkdirSync('./res/android/splash', {recursive: true})
+        if (!fs.existsSync(this._path('android', '/splash'))) {
+            fs.mkdirSync(this._path('android', '/splash'), {recursive: true})
         }
 
         await this._buildAndroidSplash(
@@ -385,7 +431,7 @@ export default class {
                 key = key.replace('port-', 'port-night-')
             }
 
-            await splash.writeAsync('res/android/splash/' + key + '.png')
+            await splash.writeAsync(this._path('android', '/splash/' + key + '.png'))
         }
     }
 
@@ -519,6 +565,14 @@ export default class {
         })
     }
 
+    _path(platform, path) {
+        return './' + this._options[platform].path + path
+    }
+
+    _cordovaPath(platform, path) {
+        return this._options[platform].path + path
+    }
+
     makeCordovaXml() {
         return this.makeIosCordovaXml(true) + '\n' +
             this.makeAndroidCordovaXml(true)
@@ -533,7 +587,7 @@ export default class {
 
         if (this._options.iconImage !== null) {
             for (const [key, value] of Object.entries(IOS_ICON_SIZES)) {
-                xml += '    <icon src="res/ios/icon/' + key + '.png" width="' + value + '" height="' + value + '" />\n'
+                xml += '    <icon src="' + this._cordovaPath('ios', '/icon/' + key + '.png') + '" width="' + value + '" height="' + value + '" />\n'
             }
         }
 
@@ -545,11 +599,11 @@ export default class {
             if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~light.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '~light.png') + '" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~light.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '~light.png') + '" />\n'
                     }
                 }
 
@@ -557,21 +611,21 @@ export default class {
 
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~dark.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '~dark.png') + '" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '~dark.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '~dark.png') + '" />\n'
                     }
                 }
             } else {
                 if (this._options.ios.idiom === 'device') {
                     for (const key of Object.keys(IOS_SPLASH_SIZES_DEVICE)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '.png') + '" />\n'
                     }
                 } else{
                     for (const key of Object.keys(IOS_SPLASH_SIZES_UNIVERSAL)) {
-                        xml += '    <splash src="res/ios/splash/' + key + '.png" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('ios', '/splash/' + key + '.png') + '" />\n'
                     }
                 }
             }
@@ -592,7 +646,7 @@ export default class {
 
         if (this._options.iconImage !== null) {
             for (const key of Object.keys(ANDROID_ICON_SIZES)) {
-                xml += '    <icon src="res/android/icon/' + key + '.png" density="' + key + '" />\n'
+                xml += '    <icon src="' + this._cordovaPath('android', '/icon/' + key + '.png') + '" density="' + key + '" />\n'
             }
         }
 
@@ -601,13 +655,13 @@ export default class {
 
             if (this._options.iconBackgroundImage !== null || this._options.android.resourceColors === false) {
                 for (const key of Object.keys(ANDROID_ICON_SIZES)) {
-                    xml += '    <icon background="res/android/icon/' + key + '-background.png" foreground="res/android/icon/' + key + '-foreground.png" density="' + key + '" />\n'
+                    xml += '    <icon background="' + this._cordovaPath('android', '/icon/' + key + '-background.png') + '" foreground="' + this._cordovaPath('android', '/icon/' + key + '-foreground.png') + '" density="' + key + '" />\n'
                 }
             } else {
-                xml += '    <resource-file src="res/android/values/colors.xml" target="res/values/colors.xml" />\n\n'
+                xml += '    <resource-file src="' + this._cordovaPath('android', '/values/colors.xml') + '" target="res/values/colors.xml" />\n\n'
 
                 for (const key of Object.keys(ANDROID_ICON_SIZES)) {
-                    xml += '    <icon background="@color/background" foreground="res/android/icon/' + key + '-foreground.png" density="' + key + '" />\n'
+                    xml += '    <icon background="@color/background" foreground="' + this._cordovaPath('android', '/icon/' + key + '-foreground.png') + '" density="' + key + '" />\n'
                 }
             }
         }
@@ -627,7 +681,7 @@ export default class {
                         continue
                     }
 
-                    xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key.replace('port-', '') + '" />\n'
+                    xml += '    <splash src="' + this._cordovaPath('android', '/splash/' + key + '.png') + '" density="' + key.replace('port-', '') + '" />\n'
                 }
 
                 xml += '\n'
@@ -643,7 +697,7 @@ export default class {
                         xml += '\n'
                     }
 
-                    xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key + '" />\n'
+                    xml += '    <splash src="' + this._cordovaPath('android', '/splash/' + key + '.png') + '" density="' + key + '" />\n'
                 }
 
                 if (this._options.splashDarkImage !== null || this._options.logoDarkImage !== null) {
@@ -663,14 +717,14 @@ export default class {
                         key = key.replace('land-', 'land-night-')
                         key = key.replace('port-', 'port-night-')
 
-                        xml += '    <splash src="res/android/splash/' + key + '.png" density="' + key + '" />\n'
+                        xml += '    <splash src="' + this._cordovaPath('android', '/splash/' + key + '.png') + '" density="' + key + '" />\n'
                     }
                 }
 
                 xml += '\n'
             }
 
-            xml += '    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/android/splash/splash-icon.png" />\n'
+            xml += '    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="' + this._cordovaPath('android', '/splash/splash-icon.png') + '" />\n'
             xml += '    <preference name="AndroidWindowSplashScreenBackground" value="' + this._options.splashBackgroundColor + '" />\n'
         }
 

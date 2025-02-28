@@ -1,5 +1,20 @@
 # Change Log
 
+## 1.2.0 - 2025-02-28
+
+### Added
+
+- Added buildAndroid and buildIos functions.
+- Added path option for Android and iOS.
+
+### Changed
+
+- Android legacySplash option is now off by default.
+- Android logoScale option is now set to 0.8 by default.
+- Android adaptive icons now have separate sizing from regular icons (108dp / 66dp for background and foreground).
+- Android iconForegroundImage will now fall back to iconImage.
+- Android iconForegroundImage no longer requires padding.
+
 ## 1.1.2 - 2023-08-09
 
 ### Fixed
