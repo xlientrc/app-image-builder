@@ -119,17 +119,39 @@ export default class {
             fs.mkdirSync(this._path('ios', '/icon'), {recursive: true})
         }
 
-        const image = await Jimp.read(this._options.iconImage)
+        const iconImage = await Jimp.read(this._options.iconImage)
+        const iconScale = this._options.ios.iconScale || this._options.iconScale
 
         for (const [key, value] of Object.entries(IOS_ICON_SIZES)) {
-            const icon = image.clone()
-            icon.resize(value, value, Jimp.RESIZE_BICUBIC)
+            const icon = await this._newImage(value, value, 0x00000000)
+
+            const foreValue = value * iconScale
+            const foreIcon = iconImage.clone()
+            foreIcon.resize(foreValue, foreValue, Jimp.RESIZE_BICUBIC)
+
+            const offset = parseInt((value - foreValue) / 2, 10)
+
+            icon.blit(
+                foreIcon,
+                offset,
+                offset,
+                0,
+                0,
+                foreValue,
+                foreValue
+            )
+
             await icon.writeAsync(this._path('ios', '/icon/' + key + '.png'))
         }
     }
 
     async buildAndroidIcons() {
-        if (this._options.iconImage === null) {
+        await this._buildAndroidLegacyIcons()
+        await this._buildAndroidAdaptiveIcons()
+    }
+
+    async _buildAndroidLegacyIcons() {
+        if (!this._options.android.legacyIcons || this._options.iconImage === null) {
             return
         }
 
@@ -137,15 +159,30 @@ export default class {
             fs.mkdirSync(this._path('android', '/icon'), {recursive: true})
         }
 
-        const image = await Jimp.read(this._options.iconImage)
+        const iconImage = await Jimp.read(this._options.iconImage)
+        const iconScale = this._options.android.iconScale || this._options.iconScale
 
         for (const [key, value] of Object.entries(ANDROID_ICON_SIZES)) {
-            const icon = image.clone()
-            icon.resize(value, value, Jimp.RESIZE_BICUBIC)
+            const icon = await this._newImage(value, value, 0x00000000)
+
+            const foreValue = value * iconScale
+            const foreIcon = iconImage.clone()
+            foreIcon.resize(foreValue, foreValue, Jimp.RESIZE_BICUBIC)
+
+            const offset = parseInt((value - foreValue) / 2, 10)
+
+            icon.blit(
+                foreIcon,
+                offset,
+                offset,
+                0,
+                0,
+                foreValue,
+                foreValue
+            )
+
             await icon.writeAsync(this._path('android', '/icon/' + key + '.png'))
         }
-
-        await this._buildAndroidAdaptiveIcons()
     }
 
     async _buildAndroidAdaptiveIcons() {
@@ -157,14 +194,18 @@ export default class {
 
         if (this._options.iconForegroundImage !== null) {
             iconImage = await Jimp.read(this._options.iconForegroundImage)
-        } else {
+        } else if (this._options.iconImage !== null) {
             iconImage = await Jimp.read(this._options.iconImage)
+        } else {
+            return
         }
+
+        const iconScale = this._options.iconForegroundScale
 
         for (const [key, value] of Object.entries(ANDROID_ADAPTIVE_BACKGROUND_ICON_SIZES)) {
             const icon = await this._newImage(value, value, 0x00000000)
 
-            const foreValue = ANDROID_ADAPTIVE_FOREGROUND_ICON_SIZES[key]
+            const foreValue = ANDROID_ADAPTIVE_FOREGROUND_ICON_SIZES[key] * iconScale
             const foreIcon = iconImage.clone()
             foreIcon.resize(foreValue, foreValue, Jimp.RESIZE_BICUBIC)
 
@@ -644,13 +685,13 @@ export default class {
             xml += '<platform name="android">\n'
         }
 
-        if (this._options.iconImage !== null) {
+        if (this._options.android.legacyIcons && this._options.iconImage !== null) {
             for (const key of Object.keys(ANDROID_ICON_SIZES)) {
                 xml += '    <icon src="' + this._cordovaPath('android', '/icon/' + key + '.png') + '" density="' + key + '" />\n'
             }
         }
 
-        if (this._options.iconForegroundImage !== null) {
+        if (this._options.iconForegroundImage !== null && this._options.iconImage !== null) {
             xml += '\n'
 
             if (this._options.iconBackgroundImage !== null || this._options.android.resourceColors === false) {

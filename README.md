@@ -8,7 +8,11 @@ import AppImageBuilder from 'app-image-builder'
 const builder = new AppImageBuilder({
     // Icons
     iconImage: './assets/icon.png',
+    iconScale: 1.0,
+
+    // Android adaptive icons
     iconForegroundImage: './assets/icon-foreground.png',
+    iconForegroundScale: 1.0,
     iconBackgroundImage: './assets/icon-background.png',
     iconBackgroundColor: '#FFFFFF',
 
@@ -30,17 +34,24 @@ const builder = new AppImageBuilder({
     ios: {
         idiom: 'universal',
 
+        // Override default iconScale.
+        iconScale: null,
+
         // Override default logoScale.
         logoScale: null,
         path: 'res/ios',
     },
 
     android: {
+        legacyIcons: false,
         legacySplash: false,
         resourceColors: true,
 
+        // Override default iconScale.
+        iconScale: null,
+
         // Override default logoScale.
-        logoScale: 0.8,
+        logoScale: 0.6,
         path: 'res/android',
     },
 })
@@ -88,7 +99,7 @@ center center
 
 A number between 0 and 1.
 
-The scale within the bounding box that the logo gets placed in.
+The scale within the bounding box that the icon or logo gets placed in.
 
 ## iOS Idioms
 universal and device

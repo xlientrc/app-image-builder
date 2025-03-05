@@ -1,5 +1,17 @@
 # Change Log
 
+## 1.3.0 - 2025-03-04
+
+### Added
+
+- Added iconScale option.
+- Added iconForegroundScale option.
+- Added android legacyIcons option.
+
+### Changed
+
+- Android legacty icons are now off by default.
+
 ## 1.2.0 - 2025-02-28
 
 ### Added

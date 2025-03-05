@@ -4,7 +4,10 @@ import fs from 'fs'
 
 const defaultOptions = {
     iconImage: null,
+    iconScale: 1.0,
+
     iconForegroundImage: null,
+    iconForegroundScale: 1.0,
     iconBackgroundImage: null,
     iconBackgroundColor: '#FFFFFF',
 
@@ -25,13 +28,16 @@ const defaultOptions = {
     ios: {
         idiom: 'universal', // universal or device
         logoScale: null,
+        iconScale: null,
         path: 'res/ios',
     },
 
     android: {
+        legacyIcons: false,
         legacySplash: false,
         resourceColors: false,
-        logoScale: 0.8,
+        logoScale: null,
+        iconScale: null,
         path: 'res/android',
     },
 }
