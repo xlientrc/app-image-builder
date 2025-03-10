@@ -6,7 +6,7 @@ Generate icons and splash images for Android and iOS apps from a set of template
 import AppImageBuilder from 'app-image-builder'
 
 const builder = new AppImageBuilder({
-    // Icons
+    // iOS and legacy Android icons
     iconImage: './assets/icon.png',
     iconScale: 1.0,
 
@@ -34,10 +34,13 @@ const builder = new AppImageBuilder({
     ios: {
         idiom: 'universal',
 
-        // Override default iconScale.
+        // Override default iconScale
         iconScale: null,
 
-        // Override default logoScale.
+        // App Store requires a non transparent image
+        appIconBackgroundColor: '#FFFFFF',
+
+        // Override default logoScale
         logoScale: null,
         path: 'res/ios',
     },
@@ -47,26 +50,26 @@ const builder = new AppImageBuilder({
         legacySplash: false,
         resourceColors: true,
 
-        // Override default iconScale.
+        // Override default iconScale
         iconScale: null,
 
-        // Override default logoScale.
+        // Override default logoScale
         logoScale: 0.6,
         path: 'res/android',
     },
 })
 
-// Generate images.
+// Generate images
 await builder.build()
 
-// Output Cordova config XML.
+// Output Cordova config XML
 console.log(builder.makeCordovaXml())
 
-// Generate images for each platform individually.
+// Generate images for each platform individually
 await builder.buildIos()
 await builder.buildAndroid()
 
-// Output Cordova config XML for each platform individually.
+// Output Cordova config XML for each platform individually
 console.log(builder.makeIosCordovaXml())
 console.log(builder.makeAndroidCordovaXml())
 ```
@@ -110,6 +113,10 @@ What size format of splash screens to generate for iOS.
 
 When true, a colors.xml resources file will be generated with the icon
 background color.
+
+## Android Legacy Icons
+
+When true, legacy Android icons will be generated.
 
 ## Android Legacy Splash
 

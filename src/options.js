@@ -29,6 +29,7 @@ const defaultOptions = {
         idiom: 'universal', // universal or device
         logoScale: null,
         iconScale: null,
+        appIconBackgroundColor: '#FFFFFF',
         path: 'res/ios',
     },
 

@@ -123,7 +123,11 @@ export default class {
         const iconScale = this._options.ios.iconScale || this._options.iconScale
 
         for (const [key, value] of Object.entries(IOS_ICON_SIZES)) {
-            const icon = await this._newImage(value, value, 0x00000000)
+            const icon = await this._newImage(
+                value,
+                value,
+                (key === 'icon-1024' ? this._options.ios.appIconBackgroundColor : 0x00000000)
+            )
 
             const foreValue = value * iconScale
             const foreIcon = iconImage.clone()

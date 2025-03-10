@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.4.0 - 2025-03-10
+
+### Added
+
+- Added iOS appIconBackgroundColor option.
+
 ## 1.3.0 - 2025-03-04
 
 ### Added
@@ -10,7 +16,7 @@
 
 ### Changed
 
-- Android legacty icons are now off by default.
+- Android legacy icons are now off by default.
 
 ## 1.2.0 - 2025-02-28
 
